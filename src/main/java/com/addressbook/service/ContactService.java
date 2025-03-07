@@ -2,22 +2,25 @@ package com.addressbook.service;
 
 import com.addressbook.dto.ContactDTO;
 import com.addressbook.model.Contact;
-import com.addressbook.repo.ContactRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.ArrayList;
 
 @Service
 public class ContactService {
 
-    @Autowired
-    private ContactRepository contactRepository;
+    // In-memory storage for contacts
+    private final List<Contact> contacts = new ArrayList<>();
+    private final AtomicLong idCounter = new AtomicLong(1); // For generating unique IDs
 
     // Convert Contact to ContactDTO
     private ContactDTO convertToDTO(Contact contact) {
         ContactDTO contactDTO = new ContactDTO();
+        contactDTO.setId(contact.getId());
         contactDTO.setName(contact.getName());
         contactDTO.setPhoneNumber(contact.getPhoneNumber());
         contactDTO.setEmail(contact.getEmail());
@@ -27,6 +30,7 @@ public class ContactService {
     // Convert ContactDTO to Contact
     private Contact convertToEntity(ContactDTO contactDTO) {
         Contact contact = new Contact();
+        contact.setId(idCounter.getAndIncrement()); // Generate a unique ID
         contact.setName(contactDTO.getName());
         contact.setPhoneNumber(contactDTO.getPhoneNumber());
         contact.setEmail(contactDTO.getEmail());
@@ -35,40 +39,42 @@ public class ContactService {
 
     // Get all contacts
     public List<ContactDTO> getAllContacts() {
-        return contactRepository.findAll()
-                .stream()
+        return contacts.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     // Get a contact by ID
     public ContactDTO getContactById(Long id) {
-        Contact contact = contactRepository.findById(id).orElse(null);
-        return contact != null ? convertToDTO(contact) : null;
+        return contacts.stream()
+                .filter(contact -> contact.getId().equals(id))
+                .findFirst()
+                .map(this::convertToDTO)
+                .orElse(null);
     }
 
     // Create a new contact
     public ContactDTO createContact(ContactDTO contactDTO) {
         Contact contact = convertToEntity(contactDTO);
-        Contact savedContact = contactRepository.save(contact);
-        return convertToDTO(savedContact);
+        contacts.add(contact);
+        return convertToDTO(contact);
     }
 
     // Update an existing contact
     public ContactDTO updateContact(Long id, ContactDTO contactDTO) {
-        Contact contact = contactRepository.findById(id).orElse(null);
-        if (contact != null) {
-            contact.setName(contactDTO.getName());
-            contact.setPhoneNumber(contactDTO.getPhoneNumber());
-            contact.setEmail(contactDTO.getEmail());
-            Contact updatedContact = contactRepository.save(contact);
-            return convertToDTO(updatedContact);
+        for (Contact contact : contacts) {
+            if (contact.getId().equals(id)) {
+                contact.setName(contactDTO.getName());
+                contact.setPhoneNumber(contactDTO.getPhoneNumber());
+                contact.setEmail(contactDTO.getEmail());
+                return convertToDTO(contact);
+            }
         }
-        return null;
+        return null; // Contact not found
     }
 
     // Delete a contact
     public void deleteContact(Long id) {
-        contactRepository.deleteById(id);
+        contacts.removeIf(contact -> contact.getId().equals(id));
     }
 }
