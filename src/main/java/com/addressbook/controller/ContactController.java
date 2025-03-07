@@ -1,6 +1,6 @@
 package com.addressbook.controller;
 
-import com.addressbook.model.Contact;
+import com.addressbook.dto.ContactDTO;
 import com.addressbook.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,17 +16,17 @@ public class ContactController {
     @Autowired
     private ContactService contactService;
 
-    // GET: Fetch all contacts
+    // Get all contacts
     @GetMapping
-    public ResponseEntity<List<Contact>> getAllContacts() {
-        List<Contact> contacts = contactService.getAllContacts();
+    public ResponseEntity<List<ContactDTO>> getAllContacts() {
+        List<ContactDTO> contacts = contactService.getAllContacts();
         return new ResponseEntity<>(contacts, HttpStatus.OK);
     }
 
-    // GET: Fetch a contact by ID
+    // Get a contact by ID
     @GetMapping("/{id}")
-    public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
-        Contact contact = contactService.getContactById(id);
+    public ResponseEntity<ContactDTO> getContactById(@PathVariable Long id) {
+        ContactDTO contact = contactService.getContactById(id);
         if (contact != null) {
             return new ResponseEntity<>(contact, HttpStatus.OK);
         } else {
@@ -34,17 +34,17 @@ public class ContactController {
         }
     }
 
-    // POST: Create a new contact
+    // Create a new contact
     @PostMapping
-    public ResponseEntity<Contact> createContact(@RequestBody Contact contact) {
-        Contact createdContact = contactService.createContact(contact);
+    public ResponseEntity<ContactDTO> createContact(@RequestBody ContactDTO contactDTO) {
+        ContactDTO createdContact = contactService.createContact(contactDTO);
         return new ResponseEntity<>(createdContact, HttpStatus.CREATED);
     }
 
-    // PUT: Update an existing contact by ID
+    // Update an existing contact
     @PutMapping("/{id}")
-    public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody Contact contactDetails) {
-        Contact updatedContact = contactService.updateContact(id, contactDetails);
+    public ResponseEntity<ContactDTO> updateContact(@PathVariable Long id, @RequestBody ContactDTO contactDTO) {
+        ContactDTO updatedContact = contactService.updateContact(id, contactDTO);
         if (updatedContact != null) {
             return new ResponseEntity<>(updatedContact, HttpStatus.OK);
         } else {
@@ -52,7 +52,7 @@ public class ContactController {
         }
     }
 
-    // DELETE: Delete a contact by ID
+    // Delete a contact
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContact(@PathVariable Long id) {
         contactService.deleteContact(id);
