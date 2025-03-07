@@ -55,7 +55,9 @@ public class ContactController {
     // Delete a contact
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContact(@PathVariable Long id) {
-        contactService.deleteContact(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        boolean isDeleted = contactService.deleteContact(id);
+        return isDeleted ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
+                : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
 }
